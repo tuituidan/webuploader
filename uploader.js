@@ -80,10 +80,12 @@
 
             if (!WebUploader.Uploader.support("html5")) {
                 //使用flash上传时才会用到
-                var uploaderTags = $("link[href*='webuploader'],script[src*='webuploader']");
+                //带点排除路径中也有webuploader的情况，避免截取路径错误
+                var searchTxt = "webuploader.";
+                var uploaderTags = $("link[href*='" + searchTxt + "'],script[src*='" + searchTxt + "']");
                 if (uploaderTags.length > 0) {
                     uploaderPath = uploaderTags.attr("href") || uploaderTags.attr("src");
-                    uploaderPath = uploaderPath.substring(0, uploaderPath.indexOf("webuploader"));
+                    uploaderPath = uploaderPath.substring(0, uploaderPath.indexOf(searchTxt));
                 }
                 if (!WebUploader.Base.supportFlash()) {
                     toast('上传控件不支持您的浏览器！如果您使用的是IE9及以下版本的浏览器，请尝试升级flash播放器');
