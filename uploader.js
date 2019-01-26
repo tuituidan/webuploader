@@ -33,13 +33,13 @@
         initData = $.extend({
             target: "#" + target,
             extraData: {},//额外传到服务器的参数
-            fileList: [],//初始添加的文件
+            fileList: [],//初始添加的文件，{name:'文件名',ext:'doc',prevurl:'',filepath:''}
             maxCount: 9,//可添加的上传文件个数
             submitName: "fileName",//提交值的name属性值
-            serverUrl: "/znbq/api/v1/sscl/upload",//文件上传的服务地址
+            serverUrl: "/api/v1/sscl/upload",//文件上传的服务地址
             // 支持格式包括：png,jpg,jpeg,gif,bmp,flv,swf,mkv,avi,rm,rmvb,mpeg,mpg,ogg,ogv,mov,wmv,mp4,webm,mp3,wav,mid,rar,zip,tar,gz,7z,bz2,cab,iso,doc,docx,xls,xlsx,ppt,pptx,pdf,txt,md,xml
             acceptExt: "txt,doc,docx,xls,xlsx,jpg,jpeg,gif,png,bmp,pdf,avi,rm,wav,rmvb,mp3,mp4,zip,rar",// 允许上传的文件格式
-            autoLoad: false, // 选择文件后是否自动上传
+            autoload: false, // 选择文件后是否自动上传
             promptText: "提示：最多可同时上传3个文件，每个文件不超过100M。"//上传提示
         }, initData);
         for (var key in initData) {
@@ -98,7 +98,7 @@
                 // 拖拽容器
                 dnd: _this.target + ' .queueList',
                 paste: document.body,
-                auto: _this.autoLoad, // 自动上传
+                auto: _this.autoload, // 自动上传
                 withCredentials: false,// 跨域时，是否允许携带cookie, 只有html5 runtime才有效
                 fileVal: 'file', //服务端接受文件流的名称
                 formData: _this.extraData,
@@ -292,8 +292,8 @@
             uploader.on('uploadSuccess', function (file, ret) {
                 var $file = $(_this.target + ' .' + file.id);
                 try {
-                    var responseText = (ret._raw || ret), json = JSON.parse(responseText);// eval('(' + responseText + ')');
-                    if (json.code === 200) {
+                    var responseText = (ret._raw || ret), json = JSON.parse(responseText);
+                    if (json.success) {
                         var result = JSON.stringify({name: file.name, path: json.filepath});
                         $file.append("<span class='success'><input name='" + _this.submitName
                             + "' type='hidden' value='" + result + "'/></span>");
