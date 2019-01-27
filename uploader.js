@@ -33,10 +33,10 @@
         initData = $.extend({
             target: "#" + target,
             extraData: {},//额外传到服务器的参数
-            fileList: [],//初始添加的文件，{name:'文件名',ext:'doc',prevurl:'',filepath:''}
+            fileList: [],//初始添加的文件，{name:'文件名',ext:'doc',prevurl:'图片预览地址',filepath:'文件存储地址'}
             maxCount: 9,//可添加的上传文件个数
             submitName: "fileName",//提交值的name属性值
-            serverUrl: "/api/v1/sscl/upload",//文件上传的服务地址
+            serverUrl: "/api/v1/upload",//文件上传的服务地址
             // 支持格式包括：png,jpg,jpeg,gif,bmp,flv,swf,mkv,avi,rm,rmvb,mpeg,mpg,ogg,ogv,mov,wmv,mp4,webm,mp3,wav,mid,rar,zip,tar,gz,7z,bz2,cab,iso,doc,docx,xls,xlsx,ppt,pptx,pdf,txt,md,xml
             acceptExt: "txt,doc,docx,xls,xlsx,jpg,jpeg,gif,png,bmp,pdf,avi,rm,wav,rmvb,mp3,mp4,zip,rar",// 允许上传的文件格式
             autoload: false, // 选择文件后是否自动上传
@@ -76,21 +76,8 @@
                 thumbnailWidth = 113 * ratio, thumbnailHeight = 113 * ratio,
                 // WebUploader实例
                 uploader,
-                uploaderPath = "";
+                uploaderPath = _this.getUploaderPath();
 
-            if (!WebUploader.Uploader.support("html5")) {
-                //使用flash上传时才会用到
-                //带点排除路径中也有webuploader的情况，避免截取路径错误
-                var searchTxt = "webuploader.";
-                var uploaderTags = $("link[href*='" + searchTxt + "'],script[src*='" + searchTxt + "']");
-                if (uploaderTags.length > 0) {
-                    uploaderPath = uploaderTags.attr("href") || uploaderTags.attr("src");
-                    uploaderPath = uploaderPath.substring(0, uploaderPath.indexOf(searchTxt));
-                }
-                if (!WebUploader.Base.supportFlash()) {
-                    toast('上传控件不支持您的浏览器！如果您使用的是IE9及以下版本的浏览器，请尝试升级flash播放器');
-                }
-            }
             uploader = _this.uploader = WebUploader.create({
                 pick: {
                     id: _this.target + ' .filePickerBlock'
@@ -114,7 +101,7 @@
                 //fileSizeLimit: 200 * 1024 * 1024, // 200 M
                 fileSingleSizeLimit: fileSingleSizeLimit, // 100 M
                 compress: false,
-                accept: _this.accept
+                accept: _this.getAccept()
             });
 
             // 当有文件添加进来时执行，负责view的创建
@@ -339,6 +326,75 @@
             var _this = this;
             _this.uploader.upload();
             _this.callback = callback;
+        },
+        getUploaderPath: function () {
+            var uploaderPath = "";
+            if (!WebUploader.Uploader.support("html5")) {
+                //使用flash上传时才会用到
+                //带点排除路径中也有webuploader的情况，避免截取路径错误
+                var searchTxt = "webuploader.";
+                var uploaderTags = $("link[href*='" + searchTxt + "'],script[src*='" + searchTxt + "']");
+                if (uploaderTags.length > 0) {
+                    uploaderPath = uploaderTags.attr("href") || uploaderTags.attr("src");
+                    uploaderPath = uploaderPath.substring(0, uploaderPath.indexOf(searchTxt));
+                }
+                if (!WebUploader.Base.supportFlash()) {
+                    toast('上传控件不支持您的浏览器！如果您使用的是IE9及以下版本的浏览器，请尝试升级flash播放器');
+                }
+            }
+            return uploaderPath;
+        },
+        getAccept: function () {
+            var _this = this, accept;
+            //常用类型的mimetype，可以控制文件选择框只能选择指定的文件
+            var mimeTypes = {
+                'avi': 'video/x-msvideo',
+                'bmp': 'image/bmp',
+                'doc': 'application/msword',
+                'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'gif': 'image/gif',
+                'gz': 'application/x-gzip',
+                'jpeg': 'image/jpeg',
+                'jpg': 'image/jpeg',
+                'mid': 'audio/midi',
+                'mkv': 'video/x-matroska',
+                'mov': 'video/quicktime',
+                'mp3': 'audio/mpeg',
+                'mp4': 'video/mp4',
+                'mpeg': 'video/mpeg',
+                'mpg': 'video/mpeg',
+                'ogv': 'video/ogg',
+                'pdf': 'application/pdf',
+                'png': 'image/png',
+                'ppt': 'application/vnd.ms-powerpoint',
+                'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'swf': 'application/x-shockwave-flash',
+                'tar': 'application/x-tar',
+                'txt': 'text/plain',
+                'wav': 'audio/x-wav',
+                'webm': 'video/webm',
+                'wmv': 'video/x-ms-wmv',
+                'xls': 'application/vnd.ms-excel',
+                'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'xml': 'application/xml',
+                'zip': 'application/zip'
+            };
+            var acceptExtArr = _this.acceptExt.split(",");
+            var mimeTypeArr = [];
+            for (var key in mimeTypes) {
+                if (acceptExtArr.indexOf(key) !== -1) {
+                    mimeTypeArr.push(mimeTypes[key]);
+                }
+            }
+            if (acceptExtArr.length === mimeTypeArr.length) {
+                //都获取到了才配置accept
+                accept = {
+                    title: _this.acceptExt,
+                    extensions: _this.acceptExt,
+                    mimeTypes: mimeTypeArr.join(",")
+                };
+            }
+            return accept;
         }
     };
 
